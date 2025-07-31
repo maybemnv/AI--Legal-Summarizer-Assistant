@@ -1,0 +1,23 @@
+# Core backend framework
+fastapi
+uvicorn
+
+# LangChain core and community packages
+langchain
+langchain-community
+langchain-huggingface
+
+# Transformers and pipelines
+transformers
+huggingface-hub
+torch
+
+# Embeddings & sentence transformers
+sentence-transformers
+
+# PDF reading and text processing
+pypdf
+faiss-cpu
+
+# Utilities (optional but recommended)
+python-multipart
