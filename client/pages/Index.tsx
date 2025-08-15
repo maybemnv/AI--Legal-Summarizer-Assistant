@@ -24,6 +24,8 @@ import UploadCourtCase from "./UploadCourtCase";
 
 export default function Index() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showDemoVideo, setShowDemoVideo] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -119,13 +121,39 @@ export default function Index() {
                 Start Summarizing
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 text-lg"
+              onClick={() => setShowDemoVideo(true)}
+            >
               <Play className="w-5 h-5 mr-2" />
               Watch Demo
             </Button>
           </div>
+
         </div>
       </section>
+      {showDemoVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden max-w-3xl w-full relative">
+            <button
+              onClick={() => setShowDemoVideo(false)}
+              className="absolute top-3 right-3 z-50 text-gray-700 dark:text-gray-200 hover:text-red-500"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <video
+              src="/demo-video.mp4"
+              controls
+              autoPlay
+              className="w-full h-auto"
+            />
+          </div>
+        </div>
+      )}
+
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">

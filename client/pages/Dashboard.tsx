@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DocumentSummaryResponse } from "@shared/api";
+import { EyeOff } from "lucide-react";
 
 interface DocumentHistory {
   id: string;
@@ -48,6 +49,47 @@ export default function Dashboard() {
 
   // Document history data - empty initially, will be populated when documents are processed
   const [documentHistory, setDocumentHistory] = useState<DocumentHistory[]>([]);
+
+  const [blurredSummaries, setBlurredSummaries] = useState<Record<string, boolean>>({});
+  const toggleBlur = (docId: string) => {
+    setBlurredSummaries(prev => ({
+      ...prev,
+      [docId]: !prev[docId]
+    }));
+  };
+  const deleteDocument = (id: string) => {
+    setDocumentHistory(prev => prev.filter(doc => doc.id !== id));
+  };
+
+
+  const downloadFile = (doc: DocumentHistory, type: 'pdf' | 'txt' | 'doc') => {
+    if (!doc.summary) return;
+
+    const fileName = doc.name.replace(/\.[^/.]+$/, "");
+    const content = `Summary:\n${doc.summary.summary}\n\nSources:\n${doc.summary.sources
+      ?.map((s, i) => `Page ${s.page}: ${s.text}`)
+      .join("\n")}`;
+
+    let blob: Blob;
+
+    if (type === 'pdf') {
+      // For simplicity, use plain text PDF (not styled)
+      blob = new Blob([content], { type: 'application/pdf' });
+    } else if (type === 'doc') {
+      blob = new Blob([content], { type: 'application/msword' });
+    } else {
+      blob = new Blob([content], { type: 'text/plain' });
+    }
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${fileName}.${type}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -474,27 +516,52 @@ export default function Dashboard() {
                           <div className="flex items-center space-x-2 ml-4">
                             {doc.status === 'completed' && (
                               <>
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="w-4 h-4" />
+                                <Button variant="ghost" size="sm" onClick={() => toggleBlur(doc.id)}>
+                                  {blurredSummaries[doc.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Download className="w-4 h-4" />
-                                </Button>
+
+                                <div className="relative group">
+                                  <Button variant="ghost" size="sm">
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                  <div className="absolute hidden group-hover:block right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+                                    <button className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => downloadFile(doc, 'pdf')}>Download PDF</button>
+                                    <button className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => downloadFile(doc, 'txt')}>Download TXT</button>
+                                    <button className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => downloadFile(doc, 'doc')}>Download DOC</button>
+                                  </div>
+                                </div>
+
                               </>
                             )}
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
+                            <div className="relative group">
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                              <div className="absolute hidden group-hover:block right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+                                <button
+                                  className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  onClick={() => deleteDocument(doc.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
                         {doc.summary && (
                           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Summary:</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-200">{doc.summary.summary}</p>
+                            <p
+                              className={`text-sm text-gray-600 dark:text-gray-200 transition duration-200 ${blurredSummaries[doc.id] ? 'blur-sm' : ''
+                                }`}
+                            >
+                              {doc.summary.summary}
+                            </p>
+
 
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mt-4 mb-2">Sources:</h4>
-                            <ul className="space-y-2">
+                            <ul className={`space-y-2 transition duration-200 ${blurredSummaries[doc.id] ? 'blur-sm' : ''}`}>
                               {doc.summary.sources?.slice(0, 3).map((source, index) => (
                                 <li key={index} className="text-sm text-gray-600 dark:text-gray-200">
                                   <span className="font-semibold">Page {source.page}:</span> {source.text}
