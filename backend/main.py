@@ -1,23 +1,3 @@
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
-# from .summarizer import router as summarizer_router
-# from .auth import router as auth_router
-
-# app = FastAPI()
-
-# # CORS setup to allow frontend requests
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:8080"],  # Your frontend port
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# # Include the summarizer endpoint (POST /summarize)
-# app.include_router(summarizer_router)
-# app.include_router(auth_router)  # NEW
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi

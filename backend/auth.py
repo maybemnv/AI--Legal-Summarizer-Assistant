@@ -1,66 +1,80 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from fastapi.security import OAuth2PasswordBearer
 
-from backend import models, schemas, database
-from backend.models import User
+from .models import User, SessionLocal
 
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = "dkJ29kS98sKf3iXn5q1WzMf29vNslqXo87FsA1CzZLpX"  # Use env var in production
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Request schema
+class UserIn(BaseModel):
+    username: str
+    password: str
+
+# Response schema
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# Dependency
 def get_db():
-    db = database.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-@router.post("/signup", response_model=schemas.Token)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    hashed_pw = pwd_context.hash(user.password)
-    new_user = models.User(email=user.email, hashed_password=hashed_pw)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    token = create_access_token(data={"sub": str(new_user.id)})
-    return {"access_token": token, "token_type": "bearer"}
-
-@router.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    token = create_access_token(data={"sub": str(db_user.id)})
-    return {"access_token": token, "token_type": "bearer"}
-
-# 👇 Needed to get the current user from JWT
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
+    print("Token received:", token)  # Optional for debugging
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid authentication credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        return {"id": int(user_id)}
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        print("Decoded payload:", payload)
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        return username
+    except JWTError as e:
+        print("JWTError:", e)
+        raise credentials_exception
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict):
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+@router.post("/signup")
+def signup(user: UserIn, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.username == user.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    hashed_pw = get_password_hash(user.password)
+    db_user = User(username=user.username, password=hashed_pw)
+    db.add(db_user)
+    db.commit()
+    return {"message": "User created"}
+
+@router.post("/login", response_model=Token)
+def login(user: UserIn, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if not db_user or not verify_password(user.password, db_user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
