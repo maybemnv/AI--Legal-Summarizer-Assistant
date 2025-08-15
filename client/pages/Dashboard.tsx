@@ -117,8 +117,19 @@ export default function Dashboard() {
 
       // Call the API endpoint
       // const response = await fetch('/api/process-document', {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setError("Please log in first.");
+        return;
+      }
+      console.log("Using token:", token);  // Add this line
+
       const response = await fetch('http://127.0.0.1:8000/summarize', {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ FIXED: Correct template literal
+        },
         body: formData,
       });
 
@@ -363,8 +374,8 @@ export default function Dashboard() {
                       <FileText className="w-5 h-5 text-brand-800 dark:text-brand-400" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">24</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-200">Documents Processed</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">Endless</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-200">Document Processing</p>
                     </div>
                   </div>
                 </CardContent>
@@ -450,12 +461,6 @@ export default function Dashboard() {
                                 </span>
                                 <span>{doc.fileSize}</span>
                                 <span>{doc.fileType}</span>
-                                {/* {doc.summary && (
-                                  <span>{doc.summary.metadata.pages} pages</span>
-                                )} */}
-                                {/* {doc.summary?.metadata?.pages && (
-                                  <span>{doc.summary.metadata.pages} pages</span>
-                                )} */}
                                 <span>{doc.summary?.metadata?.pages ?? 'N/A'} pages</span>
 
                               </div>
@@ -483,42 +488,6 @@ export default function Dashboard() {
                           </div>
                         </div>
 
-                        {/* {doc.summary && (
-                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Key Points:</h4>
-                            <ul className="space-y-1">
-                              {doc.summary.keyPoints.slice(0, 3).map((point, index) => (
-                                <li key={index} className="text-sm text-gray-600 dark:text-gray-200 flex items-start space-x-2">
-                                  <span className="w-1 h-1 bg-brand-800 dark:bg-brand-400 rounded-full mt-2 flex-shrink-0"></span>
-                                  <span>{point}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )} */}
-                        {/* {doc.summary?.keyPoints?.length ? (
-                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Key Points:</h4>
-                            <ul className="space-y-1">
-                              {doc.summary.keyPoints.slice(0, 3).map((point, index) => (
-                                <li
-                                  key={index}
-                                  className="text-sm text-gray-600 dark:text-gray-200 flex items-start space-x-2"
-                                >
-                                  <span className="w-1 h-1 bg-brand-800 dark:bg-brand-400 rounded-full mt-2 flex-shrink-0"></span>
-                                  <span>{point}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ) : (
-                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Key Points:</h4>
-                            <ul className="space-y-1">
-                              <li className="text-sm italic text-gray-400">No key points available.</li>
-                            </ul>
-                          </div>
-                        )} */}
                         {doc.summary && (
                           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Summary:</h4>

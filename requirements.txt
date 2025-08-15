@@ -27,3 +27,5 @@ python-multipart
 sqlalchemy
 passlib[bcrypt]
 python-jose
+
+python-dotenv

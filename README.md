@@ -57,11 +57,6 @@ LegalDocs-AI/
 ├── shared/
 │   └── api.ts
 │
-├── server/
-│   ├── index.ts
-│   └── routes/
-│       ├── demo.ts
-│       └── document-processor.ts
 │
 ├── .env
 ├── netlify.toml
