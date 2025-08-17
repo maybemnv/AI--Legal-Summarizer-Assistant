@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-from .summarizer import router as summarizer_router
-from .auth import router as auth_router
+# from .summarizer import router as summarizer_router
+# from .auth import router as auth_router
+
+from backend.summarizer import router as summarizer_router
+from backend.auth import router as auth_router
+
 
 app = FastAPI()
 
