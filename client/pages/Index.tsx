@@ -453,7 +453,7 @@ export default function Index() {
           {/* Copyright */}
           <div className="pt-6 border-t border-slate-700">
             <div className="text-center text-gray-400 text-sm">
-              <p>&copy; 2024 LegalDocs AI. All rights reserved.</p>
+              <p>&copy; 2025 LegalDocs AI. All rights reserved.</p>
             </div>
           </div>
         </div>
