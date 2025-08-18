@@ -159,11 +159,11 @@ export default function SignIn() {
               </blockquote>
               <div className="flex items-center mt-4">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-semibold">JD</span>
+                  <span className="text-sm font-semibold">XYZ</span>
                 </div>
                 <div className="ml-3">
-                  <p className="font-semibold">Jane Davis</p>
-                  <p className="text-white/70 text-sm">Partner at Davis & Associates</p>
+                  <p className="font-semibold">Advocate XYZ</p>
+                  <p className="text-white/70 text-sm">Partner at LegalDocs AI</p>
                 </div>
               </div>
             </div>
