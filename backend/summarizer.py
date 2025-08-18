@@ -5,7 +5,9 @@ import os
 
 from model_pipeline import process_pdf_and_summarize
 from fastapi import Depends
-from .auth import get_current_user
+# from .auth import get_current_user
+from auth import get_current_user
+
 
 router = APIRouter()
 
