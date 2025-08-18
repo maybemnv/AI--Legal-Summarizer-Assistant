@@ -11,9 +11,12 @@ from fastapi.openapi.utils import get_openapi
 from summarizer import router as summarizer_router
 from auth import router as auth_router
 
-
-
 app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "API is running"}
+
 
 # CORS setup to allow frontend requests
 app.add_middleware(
