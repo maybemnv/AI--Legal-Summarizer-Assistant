@@ -2,18 +2,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
-# from .summarizer import router as summarizer_router
-# from .auth import router as auth_router
+import sys
+import os
 
-from backend.summarizer import router as summarizer_router
-from backend.auth import router as auth_router
+# Add the project root to sys.path so imports work on Render
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from summarizer import router as summarizer_router
+from auth import router as auth_router
 
 app = FastAPI()
 
 @app.get("/")
 def read_root():
     return {"message": "API is running"}
-
 
 # CORS setup to allow frontend requests
 app.add_middleware(
@@ -43,7 +45,6 @@ def custom_openapi():
             "bearerFormat": "JWT",
         }
     }
-    # Apply security globally to all paths (or selectively as you want)
     for path in openapi_schema["paths"].values():
         for operation in path.values():
             operation["security"] = [{"BearerAuth": []}]
