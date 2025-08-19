@@ -27,3 +27,6 @@ python-multipart
 sqlalchemy
 passlib[bcrypt]
 python-jose
+
+bcrypt==4.1.2
+passlib==1.7.4
