@@ -1,12 +1,14 @@
 [build]
+  # Run commands in the root where package.json is
+  base = "."
   command = "npm run build:client"
-  publish = "dist/spa"
+  publish = "client/dist/spa"
 
 [dev]
   command = "vite"
   port = 5173
   targetPort = 5173
-  publish = "dist/spa"
+  publish = "client/dist"
   autoLaunch = true
 
 [[redirects]]
