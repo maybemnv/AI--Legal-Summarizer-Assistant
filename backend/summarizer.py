@@ -8,12 +8,14 @@ from fastapi import Depends
 # from .auth import get_current_user
 from backend.auth import get_current_user
 
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter()
 
 @router.post("/summarize")
 async def summarize_pdf(file: UploadFile = File(...), user: str = Depends(get_current_user)):
+    logging.info("Summarize endpoint hit")
     try:
         print(f"[INFO] Authenticated user: {user}")
         print(f"[INFO] Received file: {file.filename}")
