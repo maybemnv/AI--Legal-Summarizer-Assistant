@@ -1,15 +1,21 @@
 [build]
   command = "npm run build:client"
-  functions = "netlify/functions"
   publish = "dist/spa"
 
+[dev]
+  command = "vite"
+  port = 5173
+  targetPort = 5173
+  publish = "dist/spa"
+  autoLaunch = true
 
-[functions]
-  external_node_modules = ["express"]
-  node_bundler = "esbuild"
-  
 [[redirects]]
-  force = true
   from = "/api/*"
+  to = "https://ai-legal-summarizer-assistant.onrender.com/api/:splat"
   status = 200
-  to = "/.netlify/functions/api/:splat"
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
