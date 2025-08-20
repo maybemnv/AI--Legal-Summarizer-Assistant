@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:client": "npm run build",
+    "build:client": "vite build",
     "preview": "vite preview",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
