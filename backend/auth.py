@@ -62,6 +62,17 @@ def get_password_hash(password):
 def create_access_token(data: dict):
     return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
+# @router.post("/signup")
+# def signup(user: UserIn, db: Session = Depends(get_db)):
+#     existing = db.query(User).filter(User.username == user.username).first()
+#     if existing:
+#         raise HTTPException(status_code=400, detail="Username already exists")
+#     hashed_pw = get_password_hash(user.password)
+#     db_user = User(username=user.username, password=hashed_pw)
+#     db.add(db_user)
+#     db.commit()
+#     return {"message": "User created"}
+
 @router.post("/signup")
 def signup(user: UserIn, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.username == user.username).first()
@@ -72,6 +83,7 @@ def signup(user: UserIn, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     return {"message": "User created"}
+
 
 @router.post("/login", response_model=Token)
 def login(user: UserIn, db: Session = Depends(get_db)):

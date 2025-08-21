@@ -39,10 +39,11 @@ export default function SignIn() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const endpoint = isSignUp ? "/signup" : "/login";
+    const endpoint = isSignUp ? "/api/signup" : "/api/login";  // Ensure it's prefixed with /api
     const payload = isSignUp
       ? {
         username: formData.email,
@@ -57,7 +58,7 @@ export default function SignIn() {
       };
 
     try {
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
+      const res = await fetch(`https://ai-legal-summarizer-assistant.onrender.com${endpoint}`, {  // Use the live URL here
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,8 +83,8 @@ export default function SignIn() {
       console.error("Auth error:", err);
       alert(err.message);
     }
-
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
