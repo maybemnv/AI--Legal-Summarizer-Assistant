@@ -58,13 +58,14 @@ export default function SignIn() {
       };
 
     try {
-      const res = await fetch(`https://ai-legal-summarizer-assistant.onrender.com${endpoint}`, {  // Use the live URL here
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(`https://ai-legal-summarizer-assistant.onrender.com${endpoint}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(payload),
+});
+
 
       const data = await res.json();
 
