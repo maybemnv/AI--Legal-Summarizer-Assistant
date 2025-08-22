@@ -191,6 +191,9 @@
 
 
 
+# 
+
+
 import os
 import tempfile
 import logging
@@ -202,79 +205,63 @@ from fastapi.responses import JSONResponse
 from backend.auth import get_current_user
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFacePipeline
-from langchain.chains import RetrievalQA
+from langchain_huggingface import HuggingFacePipeline
 
 logging.basicConfig(level=logging.INFO)
 
 router = APIRouter()
 
-# === Lazy loading functions ===
-def get_embedding_model():
-    logging.info("[LOAD] Loading embedding model")
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
+# === Lazy load summarizer ===
 def get_llm_pipeline():
     logging.info("[LOAD] Loading summarization model (t5-small)")
-    model_id = "t5-small"  # ✅ Lighter than distilbart
+    model_id = "t5-small"
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
     pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512)
     return HuggingFacePipeline(pipeline=pipe)
 
-# === Summarization logic ===
+# === Summarization logic (lightweight) ===
 def process_pdf_and_summarize(pdf_path: str):
     try:
         logging.info("[INFO] Loading PDF")
         loader = PyPDFLoader(pdf_path)
         documents = loader.load()
+        logging.info(f"[INFO] Loaded {len(documents)} pages")
 
-        logging.info(f"[INFO] Loaded {len(documents)} documents")
+        # Join page content, limit size
+        full_text = "\n".join([doc.page_content for doc in documents])
+        full_text = full_text[:3000]  # ✅ Keep it short for memory and token limits
+        logging.info(f"[INFO] Total input chars: {len(full_text)}")
 
-        logging.info("[INFO] Splitting text")
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        chunks = text_splitter.split_documents(documents)
-
-        # ✅ Limit to reduce memory usage
-        chunks = chunks[:20]
-        logging.info(f"[INFO] Split into {len(chunks)} chunks")
-
-        logging.info("[INFO] Loading models")
-        embedding_model = get_embedding_model()
+        # Load summarizer
         llm = get_llm_pipeline()
 
-        logging.info("[INFO] Creating FAISS vectorstore")
-        vectorstore = FAISS.from_documents(chunks, embedding_model)
-
-        logging.info("[INFO] Creating retriever and QA chain")
-        retriever = vectorstore.as_retriever(search_type="similarity", k=5)
-        qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, return_source_documents=True)
-
-        query = """You are a legal expert AI. Read the court case and provide:
+        # Prompt
+        query = f"""
+        You are a legal expert AI. Read the court case below and provide:
         1. A brief summary in plain English.
         2. Key legal issues raised.
-        3. Referenced legal sections or precedents."""
-
+        3. Any referenced legal sections or precedents.
+        \n\nDocument:\n{full_text}
+        """
         logging.info("[INFO] Running summarization query")
-        response = qa_chain.invoke({"query": query})
+        response = llm.run(query)
 
-        summary = response["result"]
+        # Optional: First 2 source pages
         sources = [
             {
                 "page": doc.metadata.get("page", "N/A"),
-                "text": doc.page_content.strip()[:500]
+                "text": doc.page_content.strip()[:400]
             }
-            for doc in response["source_documents"]
+            for doc in documents[:2]
         ]
 
-        # ✅ Cleanup to reduce memory footprint
-        del documents, chunks, vectorstore, retriever, qa_chain, response, embedding_model, llm
+        # Cleanup
+        del documents, full_text, llm
         gc.collect()
 
-        return summary, sources
+        return response.strip(), sources
 
     except Exception as e:
         logging.error("[ERROR] Exception during summarization")
