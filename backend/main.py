@@ -43,8 +43,6 @@ app.add_middleware(
 
 # Include routers after app initialization
 app.include_router(summarizer_router)
-app.include_router(auth_router)
-# Include routers with the appropriate prefix
 app.include_router(auth_router, prefix="/api")
 
 
