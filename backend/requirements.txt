@@ -19,7 +19,6 @@ sentence-transformers
 pypdf
 faiss-cpu
 
-# Utilities (optional but recommended)
 python-multipart
 
 
