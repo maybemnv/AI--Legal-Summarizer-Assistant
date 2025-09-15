@@ -1,53 +1,54 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
+import os
+import google.generativeai as genai
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-from langchain_huggingface import HuggingFacePipeline
-from langchain.chains import RetrievalQA
+
+# Configure Gemini API
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is not set")
+
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-1.5-pro')
 
 def process_pdf_and_summarize(pdf_path: str):
     # Step 1: Load & split
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=8000, chunk_overlap=1000)  # Larger chunks for Gemini
     chunks = text_splitter.split_documents(documents)
-
-    # Step 2: Embedding
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = FAISS.from_documents(chunks, embedding_model)
-
-    # Step 3: Load lightweight model
-    model_id = "sshleifer/distilbart-cnn-12-6"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
-    pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512)
-    llm = HuggingFacePipeline(pipeline=pipe)
-
-    # Step 4: RAG QA Chain
-    retriever = vectorstore.as_retriever(search_type="similarity", k=5)
-    qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, return_source_documents=True)
-
-    # Step 5: Query
-    query = """You are a legal expert AI.
-    Read the court case and provide:
-    1. A brief summary in plain English.
-    2. Key legal issues raised.
-    3. Referenced legal sections or precedents."""
     
-    response = qa_chain.invoke({"query": query})
+    # Combine all text chunks
+    full_text = "\n\n".join([chunk.page_content for chunk in chunks])
+
+    # Step 2: Generate summary using Gemini
+    prompt = """You are a legal expert AI. Please analyze this court case and provide:
+    1. A brief summary in plain English (2-3 paragraphs).
+    2. Key legal issues raised (bullet points).
+    3. Referenced legal sections or precedents (if any).
     
-    # Step 6: Return formatted result
-    summary = response["result"]
+    Here's the court case:
+    {text}"""
+    
+    # Format the prompt with the document text
+    formatted_prompt = prompt.format(text=full_text)
+    
+    # Generate response using Gemini
+    response = model.generate_content(formatted_prompt)
+    
+    # Extract summary from response
+    summary = response.text
+    
+    # Return formatted result with source chunks
     sources = [
         {
-            "page": doc.metadata.get("page", "N/A"),
-            "text": doc.page_content.strip()[:500]
+            "page": chunk.metadata.get("page", "N/A"),
+            "text": chunk.page_content.strip()[:500]
         }
-        for doc in response["source_documents"]
+        for chunk in chunks
     ]
     
     return summary, sources

@@ -51,7 +51,7 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Your API Title",
+        title="LegalizeAI",
         version="1.0.0",
         description="API with JWT auth",
         routes=app.routes,
@@ -70,8 +70,3 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
-
-# Run the app with dynamic port for Render or local dev
-# if __name__ == "__main__":
-#     port = int(os.environ.get("PORT", 8000))  # Render sets $PORT, default 8000 locally
-#     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
