@@ -5,27 +5,25 @@ uvicorn
 # LangChain core and community packages
 langchain
 langchain-community
-langchain-huggingface
+langchain-google-genai
 
-# Transformers and pipelines
-transformers
-huggingface-hub
-torch
-
-# Embeddings & sentence transformers
-sentence-transformers
+# Google Gemini AI
+google-generativeai
+google-cloud-aiplatform
 
 # PDF reading and text processing
 pypdf
 faiss-cpu
 
+# File upload
 python-multipart
 
-
-
+# Authentication
 sqlalchemy
 passlib[bcrypt]
 python-jose
-
 bcrypt==4.1.2
 passlib==1.7.4
+
+# Environment and utilities
+python-dotenv

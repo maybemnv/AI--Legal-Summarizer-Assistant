@@ -15,12 +15,15 @@ export interface DemoResponse {
  * Response type for document processing API
  */
 export interface DocumentSummaryResponse {
-  title: string;
-  summary: string;
-  keyPoints: string[];
-  metadata: {
-    pages: number;
-    wordCount: number;
-    processingTime: number;
-  };
+  summary: string; // Markdown formatted summary from Gemini
+  sources: SourceReference[];
+}
+
+/**
+ * Source reference from RAG retrieval
+ */
+export interface SourceReference {
+  page: string | number;
+  text: string;
+  relevance_rank?: number;
 }

@@ -26,8 +26,9 @@ import {
   Plus
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { DocumentSummaryResponse } from "@shared/api";
-import { EyeOff } from "lucide-react";
+import { DocumentSummaryResponse, SourceReference } from "@shared/api";
+import { EyeOff, ExternalLink, BookOpen } from "lucide-react";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 interface DocumentHistory {
   id: string;
@@ -66,27 +67,61 @@ export default function Dashboard() {
     if (!doc.summary) return;
 
     const fileName = doc.name.replace(/\.[^/.]+$/, "");
-    const content = `Summary:\n${doc.summary.summary}\n\nSources:\n${doc.summary.sources
-      ?.map((s, i) => `Page ${s.page}: ${s.text}`)
-      .join("\n")}`;
-
-    let blob: Blob;
-
-    if (type === 'pdf') {
-      // For simplicity, use plain text PDF (not styled)
-      blob = new Blob([content], { type: 'application/pdf' });
-    } else if (type === 'doc') {
-      blob = new Blob([content], { type: 'application/msword' });
+    const timestamp = new Date().toLocaleDateString();
+    
+    // Create structured content with header
+    let content = `Legal Document Analysis - ${doc.name}\n`;
+    content += `Generated: ${timestamp}\n`;
+    content += `Source File: ${doc.fileSize} ${doc.fileType}\n`;
+    content += `\n${'='.repeat(60)}\n\n`;
+    
+    // Add the markdown summary (converted to plain text for non-markdown formats)
+    if (type === 'txt') {
+      // Keep markdown formatting for .txt files
+      content += doc.summary.summary;
     } else {
-      blob = new Blob([content], { type: 'text/plain' });
+      // Convert markdown to plain text for other formats
+      const plainText = doc.summary.summary
+        .replace(/^#+ /gm, '') // Remove markdown headers
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+        .replace(/- /gm, '• '); // Convert bullet points
+      content += plainText;
+    }
+    
+    // Add source references
+    if (doc.summary.sources && doc.summary.sources.length > 0) {
+      content += `\n\n${'='.repeat(60)}\n`;
+      content += `SOURCE REFERENCES (${doc.summary.sources.length} total)\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      doc.summary.sources.forEach((source, index) => {
+        content += `[${index + 1}] Page ${source.page}\n`;
+        content += `${source.text}\n\n`;
+      });
     }
 
+    let blob: Blob;
+    let mimeType: string;
+
+    switch (type) {
+      case 'pdf':
+        mimeType = 'application/pdf';
+        break;
+      case 'doc':
+        mimeType = 'application/msword';
+        break;
+      default:
+        mimeType = 'text/plain';
+    }
+
+    blob = new Blob([content], { type: mimeType });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${fileName}.${type}`;
+    link.download = `${fileName}_analysis.${type}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
 
 
@@ -503,13 +538,15 @@ export default function Dashboard() {
                                 </span>
                                 <span>{doc.fileSize}</span>
                                 <span>{doc.fileType}</span>
-                                <span>{doc.summary?.metadata?.pages ?? 'N/A'} pages</span>
+                                <span>{doc.summary?.sources?.length ? `${doc.summary.sources.length} refs` : 'N/A'}</span>
 
                               </div>
                               {doc.summary && (
-                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-200 line-clamp-2">
-                                  {doc.summary.summary}
-                                </p>
+                                <div className="mt-2 text-sm text-gray-600 dark:text-gray-200">
+                                  <div className="line-clamp-3">
+                                    {doc.summary.summary.substring(0, 200)}...
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -548,26 +585,61 @@ export default function Dashboard() {
                             </div>
                           </div>
                         </div>
-
                         {doc.summary && (
                           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Summary:</h4>
-                            <p
-                              className={`text-sm text-gray-600 dark:text-gray-200 transition duration-200 ${blurredSummaries[doc.id] ? 'blur-sm' : ''
-                                }`}
-                            >
-                              {doc.summary.summary}
-                            </p>
+                            <div className="space-y-4">
+                              {/* Enhanced Summary with Markdown Rendering */}
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                                  <BookOpen className="w-4 h-4 mr-2" />
+                                  Legal Analysis
+                                </h4>
+                                <div
+                                  className={`transition duration-200 ${
+                                    blurredSummaries[doc.id] ? 'blur-sm' : ''
+                                  }`}
+                                >
+                                  <MarkdownRenderer 
+                                    content={doc.summary.summary} 
+                                    className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
+                                  />
+                                </div>
+                              </div>
 
-
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mt-4 mb-2">Sources:</h4>
-                            <ul className={`space-y-2 transition duration-200 ${blurredSummaries[doc.id] ? 'blur-sm' : ''}`}>
-                              {doc.summary.sources?.slice(0, 3).map((source, index) => (
-                                <li key={index} className="text-sm text-gray-600 dark:text-gray-200">
-                                  <span className="font-semibold">Page {source.page}:</span> {source.text}
-                                </li>
-                              ))}
-                            </ul>
+                              {/* Enhanced Source References */}
+                              {doc.summary.sources && doc.summary.sources.length > 0 && (
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    Source References ({doc.summary.sources.length})
+                                  </h4>
+                                  <div className={`space-y-3 transition duration-200 ${blurredSummaries[doc.id] ? 'blur-sm' : ''}`}>
+                                    {doc.summary.sources.slice(0, 5).map((source, index) => (
+                                      <div key={index} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                        <div className="flex items-start justify-between mb-2">
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                            Page {source.page}
+                                          </span>
+                                          {source.relevance_rank && (
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                              Rank #{source.relevance_rank}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                          {source.text}
+                                        </p>
+                                      </div>
+                                    ))}
+                                    {doc.summary.sources.length > 5 && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
+                                        ... and {doc.summary.sources.length - 5} more references
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
 
