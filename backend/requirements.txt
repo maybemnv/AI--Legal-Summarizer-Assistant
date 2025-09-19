@@ -25,5 +25,9 @@ python-jose
 bcrypt==4.1.2
 passlib==1.7.4
 
+<<<<<<< HEAD
 # Environment and utilities
 python-dotenv
+=======
+google
+>>>>>>> 10d4cd2 (added gemini to it)
