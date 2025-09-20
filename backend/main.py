@@ -17,7 +17,7 @@ try:
     from backend.summarizer import router as summarizer_router
     from backend.auth import router as auth_router
 except ModuleNotFoundError:
-    from summarizer import router as summarizer_router
+    from backend.summarizer import router as summarizer_router
     from auth import router as auth_router
 
 # Create FastAPI app instance
