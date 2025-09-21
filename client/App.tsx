@@ -1,10 +1,10 @@
 import "./global.css";
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "./components/ui/toaster";
 import { createRoot } from "react-dom/client";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/hooks/use-theme";
+// import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { ThemeProvider } from "./hooks/use-theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
@@ -14,7 +14,7 @@ import Pricing from "./pages/Pricing";
 import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import ScrollToTop from "./hooks/scrollTop";
 
 const queryClient = new QueryClient();
@@ -24,7 +24,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        {/* <Sonner /> */}
         <BrowserRouter>
         <ScrollToTop /> 
           <Routes>

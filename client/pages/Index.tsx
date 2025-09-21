@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { ThemeToggle } from "../components/ui/theme-toggle";
 import {
   FileText,
   Upload,
