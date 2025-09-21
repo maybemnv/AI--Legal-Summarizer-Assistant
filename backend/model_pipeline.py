@@ -1,10 +1,8 @@
-# GEMINI RAG CODE
+# RAG with Cohere Embeddings
 import warnings
 import os
 import traceback
 from dotenv import load_dotenv
-from google.cloud import aiplatform
-from google.cloud.aiplatform.gapic import PredictionServiceClient
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -12,6 +10,8 @@ from langchain.chains import RetrievalQA
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLLM
 from langchain_core.prompts import PromptTemplate
+import cohere
+import google.generativeai as genai
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -20,49 +20,84 @@ warnings.filterwarnings("ignore", category=UserWarning)
 load_dotenv()
 
 # ENV variables
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GOOGLE_APPLICATION_CREDENTIALS = r"C:\Users\Prakriti\Desktop\Projects\AI--Legal-Summarizer-Assistant\backend\leetcode-tracker-471216-f42fbb083f3d (1).json"
-GEMINI_ENDPOINT_ID = os.getenv("GEMINI_ENDPOINT_ID")
 
-GCP_PROJECT_ID = "leetcode-tracker-471216"
+# Initialize Cohere client
+if not COHERE_API_KEY:
+    raise ValueError("COHERE_API_KEY not found in environment variables")
 
+# Initialize Gemini
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
 
-# Set Google Cloud Authentication
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
-
-# Initialize Google Cloud AI Platform
-def initialize_gemini_client():
-    aiplatform.init(project=GCP_PROJECT_ID, location="us-central1")
-
-# Custom Embeddings class for LangChain
-class GeminiEmbeddings(Embeddings):
+# Cohere Embeddings class for LangChain
+class CohereEmbeddings(Embeddings):
+    def __init__(self, model_name="embed-english-v3.0"):
+        self.client = cohere.Client(COHERE_API_KEY)
+        self.model_name = model_name
+        
     def embed_documents(self, texts):
-        endpoint = f"projects/{GCP_PROJECT_ID}/locations/us-central1/endpoints/{GEMINI_ENDPOINT_ID}"
-        instances = [{"content": text} for text in texts]
-        client = PredictionServiceClient()
-        response = client.predict(endpoint=endpoint, instances=instances)
-        # You may need to adjust this based on the real structure of the response
-        return [pred["embedding"] for pred in response.predictions]
+        try:
+            # Cohere's batch embedding for documents
+            if not texts:
+                return []
+                
+            response = self.client.embed(
+                texts=texts,
+                model=self.model_name,
+                input_type="search_document"
+            )
+            return response.embeddings
+        except Exception as e:
+            print(f"Error generating embeddings: {str(e)}")
+            raise
 
     def embed_query(self, text):
-        return self.embed_documents([text])[0]
+        try:
+            # Cohere's embedding for a single query
+            response = self.client.embed(
+                texts=[text],
+                model=self.model_name,
+                input_type="search_query"
+            )
+            return response.embeddings[0]
+        except Exception as e:
+            print(f"Error generating query embedding: {str(e)}")
+            raise
 
 # Custom LLM class for LangChain
 class GeminiLLM(BaseLLM):
-    def _call(self, prompt: str, stop=None):
-        endpoint = f"projects/{GCP_PROJECT_ID}/locations/us-central1/endpoints/{GEMINI_ENDPOINT_ID}"
-        instances = [{"content": prompt}]
-        client = PredictionServiceClient()
-        response = client.predict(endpoint=endpoint, instances=instances)
-        # Adjust according to actual response
-        return response.predictions[0]["content"]
+    def _call(self, prompt: str, stop=None, **kwargs):
+        return self._generate([prompt], stop=stop, **kwargs).generations[0][0].text
+
+    def _generate(self, prompts, stop=None, **kwargs):
+        from langchain_core.outputs import Generation, LLMResult
+        
+        generations = []
+        for prompt in prompts:
+            try:
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                response = model.generate_content(prompt)
+                generations.append([Generation(text=response.text)])
+            except Exception as e:
+                print(f"Error in Gemini LLM call: {str(e)}")
+                raise
+                
+        return LLMResult(generations=generations)
 
     @property
     def _llm_type(self) -> str:
-        return "gemini-llm"
+        return "gemini-2.5-flash"
+        
+    @property
+    def _identifying_params(self) -> dict:
+        return {"model_name": "gemini-2.5-flash"}
 
 # Main RAG processing function
-def process_pdf_and_summarize(pdf_path: str):
+def process_pdf_and_summarize(pdf_path: str, query: str):
     try:
         print("[DEBUG] Loading PDF")
         loader = PyPDFLoader(pdf_path)
@@ -76,11 +111,8 @@ def process_pdf_and_summarize(pdf_path: str):
 
         print(f"[DEBUG] Split into {len(chunks)} chunks")
 
-        print("[DEBUG] Initializing Google Gemini Client")
-        initialize_gemini_client()
-
-        print("[DEBUG] Creating embeddings using Gemini")
-        embeddings = GeminiEmbeddings()
+        print("[DEBUG] Creating embeddings using Cohere")
+        embeddings = CohereEmbeddings(model_name="embed-english-v3.0")
 
         print("[DEBUG] Creating FAISS vectorstore")
         vectorstore = FAISS.from_documents(chunks, embedding=embeddings)
@@ -90,46 +122,62 @@ def process_pdf_and_summarize(pdf_path: str):
         llm = GeminiLLM()
 
         print("[DEBUG] Setting up RetrievalQA chain")
-        prompt_template = PromptTemplate.from_template(
-            """
+        prompt_template = """
 You are a legal expert AI. Based on the context below, answer the following legal analysis request.
 
 Context:
 {context}
 
-Question:
-{question}
+Question: {question}
+
+Provide a detailed legal analysis and summary:
 """
-        )
 
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
+            chain_type="stuff",
             retriever=retriever,
             return_source_documents=True,
-            chain_type_kwargs={"prompt": prompt_template}
+            verbose=True,
+            chain_type_kwargs={
+                "prompt": PromptTemplate(
+                    template=prompt_template,
+                    input_variables=["context", "question"],
+                ),
+            },
         )
 
-        query = """You are a legal expert AI. Read the court case and provide:
-1. A brief summary in plain English.
-2. Key legal issues raised.
-3. Referenced legal sections or precedents."""
-
         print("[DEBUG] Running query")
-        response = qa_chain.invoke({"question": query})
+        result = qa_chain({"query": query})
 
-        print("[DEBUG] Formatting response")
-        summary = response["result"]
-        sources = [
-            {
-                "page": doc.metadata.get("page", "N/A") if doc.metadata else "N/A",
-                "text": doc.page_content.strip()[:500]
-            }
-            for doc in response["source_documents"]
-        ]
-
-        return summary, sources
+        return {
+            "result": result["result"],
+            "source_documents": [
+                {
+                    "page_content": doc.page_content,
+                    "metadata": doc.metadata
+                } for doc in result["source_documents"]
+            ]
+        }
 
     except Exception as e:
-        print("[ERROR] Exception during summarization:")
-        traceback.print_exc()
-        raise e
+        print(f"[ERROR] {str(e)}")
+        print(traceback.format_exc())
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
+# Example usage
+if __name__ == "__main__":
+    # Example usage
+    pdf_path = "sample_legal_document.pdf"  # Replace with your PDF path
+    query = "Summarize the key legal points in this document"
+    
+    result = process_pdf_and_summarize(pdf_path, query)
+    if "error" in result:
+        print(f"Error: {result['error']}")
+    else:
+        print("\nSummary:")
+        print(result["result"])
+        print("\nSources:")
+        for i, doc in enumerate(result["source_documents"], 1):
+            print(f"\nSource {i} (Page {doc['metadata'].get('page', 'N/A')}):")
+            print(doc["page_content"][:300] + "...")

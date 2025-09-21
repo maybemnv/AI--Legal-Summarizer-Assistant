@@ -27,14 +27,22 @@ async def summarize_pdf(file: UploadFile = File(...), user: str = Depends(get_cu
             temp_path = temp.name
 
         print(f"[INFO] Saved temp file at: {temp_path}")
-        summary, sources = process_pdf_and_summarize(temp_path)
+        
+        # Using a default query for summarization
+        result = process_pdf_and_summarize(
+            pdf_path=temp_path,
+            query="Provide a detailed summary of the key legal points in this document"
+        )
 
         os.remove(temp_path)
         print("[INFO] Removed temp file")
 
+        if "error" in result:
+            return JSONResponse(status_code=500, content={"error": result["error"]})
+            
         return JSONResponse(content={
-            "summary": summary,
-            "sources": sources
+            "summary": result.get("result", ""),
+            "sources": result.get("source_documents", [])
         })
 
     except Exception as e:

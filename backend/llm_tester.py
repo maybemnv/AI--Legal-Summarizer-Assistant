@@ -7,7 +7,7 @@ load_dotenv()
 
 # Set up API key
 # Configure Gemini API
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY environment variable is not set")
 
@@ -20,8 +20,5 @@ Answer this like a real fan who knows why Fernando Alonso is the greatest of all
 User: Who's the GOAT of F1?
 Assistant:"""
 )
-
-# Send the promprint(response.text)
-
 # Print the result
 print(response.text)
