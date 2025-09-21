@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Progress } from "../components/ui/progress";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { ThemeToggle } from "../components/ui/theme-toggle";
 import {
   FileText,
   Upload,
@@ -28,7 +28,7 @@ import {
 import { Link } from "react-router-dom";
 import { DocumentSummaryResponse, SourceReference } from "@shared/api";
 import { EyeOff, ExternalLink, BookOpen } from "lucide-react";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { MarkdownRenderer } from "../components/MarkdownRenderer";
 
 interface DocumentHistory {
   id: string;
