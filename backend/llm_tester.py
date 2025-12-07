@@ -16,7 +16,7 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 
 response = model.generate_content(
     """You're a motorsport expert with deep appreciation for driving skill, longevity, and adaptability.
-Answer this like a real fan who knows why Fernando Alonso is the greatest of all time in Formula 1.
+Answer this like a real fan who knows why max verstappen is the greatest of all time in Formula 1.
 User: Who's the GOAT of F1?
 Assistant:"""
 )
