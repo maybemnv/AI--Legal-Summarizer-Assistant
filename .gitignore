@@ -24,7 +24,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-venv/
+.venv/
 ENV/
 leetcode-tracker-471216-f42fbb083f3d.json
 # Node

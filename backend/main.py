@@ -35,7 +35,12 @@ def health_check():
 # CORS middleware setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Adjust this for production
+    allow_origins=[
+        "http://localhost:3000",  # React default port
+        "http://localhost:8080",  # Vite default port
+        "http://localhost:5173",  # Vite alternative port
+        "https://ai-legal-summarizer-assistant.onrender.com"  # Production URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

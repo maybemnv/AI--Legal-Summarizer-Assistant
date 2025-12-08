@@ -94,7 +94,7 @@ class GeminiLLM(BaseLLM):
         
     @property
     def _identifying_params(self) -> dict:
-        return {"model_name": "gemini-2.5-flash"}
+        return {"model_name": "gemini-2.5-pro"}
 
 # Main RAG processing function
 def process_pdf_and_summarize(pdf_path: str, query: str):
@@ -148,7 +148,7 @@ Provide a detailed legal analysis and summary:
         )
 
         print("[DEBUG] Running query")
-        result = qa_chain({"query": query})
+        result = qa_chain.invoke({"query": query})
 
         return {
             "result": result["result"],

@@ -43,46 +43,64 @@ export default function SignIn() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const endpoint = isSignUp ? "/api/signup" : "/api/login";  // Ensure it's prefixed with /api
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      alert('Please enter both email and password');
+      return;
+    }
+
+    if (isSignUp && formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    const endpoint = isSignUp ? "/api/signup" : "/api/login";
     const payload = isSignUp
       ? {
-        username: formData.email,
-        password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        organization: formData.organization,
-      }
+          username: formData.email,
+          password: formData.password,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          organization: formData.organization || '',
+        }
       : {
-        username: formData.email,
-        password: formData.password,
-      };
+          username: formData.email,
+          password: formData.password,
+        };
 
     try {
-      const res = await fetch(`https://ai-legal-summarizer-assistant.onrender.com${endpoint}`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(payload),
-});
+      const response = await fetch(`http://localhost:8000${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
 
+      const data = await response.json();
 
-      const data = await res.json();
-
-      if (res.status === 200) {
-        if (isSignUp) {
-          alert("Signup successful! Please log in.");
-          setIsSignUp(false); // switch to login screen
-        } else {
-          localStorage.setItem("token", data.access_token);
-          navigate("/");
-        }
-      } else {
-        throw new Error(data.detail || "Invalid credentials");
+      if (!response.ok) {
+        throw new Error(data.detail || 'Authentication failed. Please check your credentials.');
       }
-    } catch (err: any) {
-      console.error("Auth error:", err);
-      alert(err.message);
+
+      if (isSignUp) {
+        alert('Signup successful! Please log in.');
+        setIsSignUp(false);
+      } else {
+        // Store the token in localStorage
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token);
+          // Redirect to dashboard or home page
+          navigate('/dashboard');
+        } else {
+          throw new Error('No access token received');
+        }
+      }
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      alert(error.message || 'An error occurred during authentication. Please try again.');
     }
   };
 
