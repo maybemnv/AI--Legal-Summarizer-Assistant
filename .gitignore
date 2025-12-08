@@ -2,6 +2,11 @@
 .env
 .env.*
 !.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 .buider/
 # Python
 __pycache__/

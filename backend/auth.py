@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
+import os
 
 from backend.models import User, SessionLocal
 
-SECRET_KEY = "dkJ29kS98sKf3iXn5q1WzMf29vNslqXo87FsA1CzZLpX"  # Use env var in production
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key-change-in-production")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
