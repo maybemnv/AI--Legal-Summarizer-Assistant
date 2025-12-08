@@ -32,15 +32,10 @@ def read_root():
 def health_check():
     return
 
-# CORS middleware setup
+# CORS middleware setup - Allow all origins for deployment flexibility
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # React default port
-        "http://localhost:8080",  # Vite default port
-        "http://localhost:5173",  # Vite alternative port
-        "https://ai-legal-summarizer-assistant-x0g7.onrender.com"  # Production URL
-    ],
+    allow_origins=["*"],  # Allow all origins (Netlify, Vercel, etc.)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
