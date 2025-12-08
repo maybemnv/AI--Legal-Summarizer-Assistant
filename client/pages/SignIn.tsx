@@ -69,7 +69,7 @@ export default function SignIn() {
         };
 
     try {
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`https://ai-legal-summarizer-assistant-x0g7.onrender.com${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

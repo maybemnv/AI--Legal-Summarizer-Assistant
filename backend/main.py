@@ -39,7 +39,7 @@ app.add_middleware(
         "http://localhost:3000",  # React default port
         "http://localhost:8080",  # Vite default port
         "http://localhost:5173",  # Vite alternative port
-        "https://ai-legal-summarizer-assistant.onrender.com"  # Production URL
+        "https://ai-legal-summarizer-assistant-x0g7.onrender.com"  # Production URL
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -202,7 +202,7 @@ export default function Dashboard() {
       }
       console.log("Using token:", token);  // Add this line
 
-      const response = await fetch('http://127.0.0.1:8000/summarize', {
+      const response = await fetch('https://ai-legal-summarizer-assistant-x0g7.onrender.com/summarize', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`, // ✅ FIXED: Correct template literal
