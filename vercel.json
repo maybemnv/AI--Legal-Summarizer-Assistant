@@ -1,12 +1,16 @@
 {
-  "builds": [
+  "buildCommand": "npm run build:client",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "rewrites": [
     {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "client/dist" }
+      "source": "/api/:path*",
+      "destination": "https://ai-legal-summarizer-assistant-x0g7.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/client/index.html" }
   ]
 }
