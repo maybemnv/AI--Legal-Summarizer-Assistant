@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../src/config";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -69,13 +70,13 @@ export default function SignIn() {
         };
 
     try {
-      const response = await fetch(`https://ai-legal-summarizer-assistant-x0g7.onrender.com${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(payload),
       });
 

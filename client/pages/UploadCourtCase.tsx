@@ -77,6 +77,7 @@
 
 
 import React, { useState } from "react";
+import { API_BASE_URL } from "../src/config";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 
@@ -100,7 +101,7 @@ export default function UploadCourtCase() {
     setLoading(true);
 
     try {
-      const response = await fetch("https://ai-legal-summarizer-assistant-x0g7.onrender.com/summarize", {
+      const response = await fetch(`${API_BASE_URL}/summarize`, {
         method: "POST",
         body: formData,
       });

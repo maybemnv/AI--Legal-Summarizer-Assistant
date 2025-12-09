@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { API_BASE_URL } from "../src/config";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
@@ -202,7 +203,7 @@ export default function Dashboard() {
       }
       console.log("Using token:", token);  // Add this line
 
-      const response = await fetch('https://ai-legal-summarizer-assistant-x0g7.onrender.com/summarize', {
+      const response = await fetch(`${API_BASE_URL}/summarize`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`, // ✅ FIXED: Correct template literal
