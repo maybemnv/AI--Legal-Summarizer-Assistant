@@ -1,20 +1,21 @@
-from fastapi import APIRouter, UploadFile, File
-from fastapi.responses import JSONResponse
-import tempfile
 import os
-
-from backend.model_pipeline import process_pdf_and_summarize
-from fastapi import Depends
-# from .auth import get_current_user
-from backend.auth import get_current_user
-
+import tempfile
 import logging
+from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi.responses import JSONResponse
+
+from backend.services.rag_service import process_pdf_and_summarize
+from backend.routers.auth import get_current_user
+
+router = APIRouter(tags=["summarizer"])
+
 logging.basicConfig(level=logging.INFO)
 
-router = APIRouter()
-
 @router.post("/summarize")
-async def summarize_pdf(file: UploadFile = File(...), user: str = Depends(get_current_user)):
+async def summarize_pdf(
+    file: UploadFile = File(...), 
+    user: str = Depends(get_current_user)
+):
     logging.info("Summarize endpoint hit")
     try:
         print(f"[INFO] Authenticated user: {user}")

@@ -2,15 +2,9 @@
 .env
 .env.*
 !.env.example
-
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-.buider/
-# Python
-__pycache__/
-*.py[cod]
+*.py[cod
 *$py.class
 *.so
 .Python
@@ -69,3 +63,4 @@ out/
 # Logs
 logs/
 *.log
+Project_Presentation_Script.md

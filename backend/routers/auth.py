@@ -1,35 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
-from jose import jwt, JWTError
+
+from backend.core.database import get_db
+from backend.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
+from backend.models.user import User
+from backend.schemas.auth import UserIn, Token
 from fastapi.security import OAuth2PasswordBearer
-import os
+from jose import JWTError
 
-from backend.models import User, SessionLocal
+router = APIRouter(tags=["authentication"])
 
-SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key-change-in-production")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-
-router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-class UserIn(BaseModel):
-    username: str
-    password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -38,7 +19,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode_access_token(token)
+        if payload is None:
+            raise credentials_exception
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -46,17 +29,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def create_access_token(data: dict):
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-
-
-# === SIGNUP ENDPOINT ===
 @router.post("/signup")
 def signup(user: UserIn, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.username == user.username).first()
@@ -68,22 +40,19 @@ def signup(user: UserIn, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "User created"}
 
-# === Reject GET requests to /signup ===
 @router.get("/signup")
 def reject_get_signup(request: Request):
     raise HTTPException(status_code=405, detail="Method Not Allowed")
 
-
-# === LOGIN ENDPOINT ===
 @router.post("/login", response_model=Token)
 def login(user: UserIn, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
 
-# === Reject GET requests to /login ===
 @router.get("/login")
 def reject_get_login(request: Request):
     raise HTTPException(status_code=405, detail="Method Not Allowed")
