@@ -1,110 +1,121 @@
-# 🧠 LegalDocs AI
+# LegalDocs AI
 
-![Hero Banner](./public/homepage.png)
+![LegalDocs AI Banner](./public/homepage.png)
 
-**LegalDocs AI** is an AI-powered web assistant that extracts and summarizes complex legal documents (PDFs) in seconds. Built with a FastAPI backend and a modern React + Builder.io frontend, it delivers concise, accurate legal insights with source traceability.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 
----
+## Overview
 
-## 🚀 Features
+LegalDocs AI is an automated document analysis system designed to streamline the processing of complex legal texts. Utilizing advanced Natural Language Processing (NLP) models, the platform facilitates the extraction of key insights, generation of concise summaries, and provision of verifiable source citations for legal contracts and court cases.
 
-- 🔐 **User Authentication**: Secure login and signup.
-- 📄 **PDF Upload**: Upload court cases or any legal documents.
-- 🧠 **AI Summarization**: Fast, reliable legal summaries using NLP models.
-- 📚 **Source Tracing**: Get page-specific references for every summary.
-- 🗂 **Summary History**: Track all previously uploaded and summarized files.
-- 🌐 **Builder.io UI**: Visually editable frontend using Builder components.
+## Key Features
 
----
+- **Automated Summarization**: Leverages large language models to process and summarize PDF documents with high accuracy.
+- **Source Citation**: Implements precise page-level referencing to ensure traceability and verification of generated summaries.
+- **Authentication & Security**: Features a secure user authentication system with robust session management.
+- **Document Management**: Provides a persistent history of processed documents, allowing for efficient retrieval and review.
+- **Responsive Interface**: Built on a modern React framework with TypeScript, ensuring a stable and type-safe user experience.
 
-## 🛠 Tech Stack
+## Technical Architecture
 
-| Layer         | Tools / Frameworks                                  |
-|---------------|------------------------------------------------------|
-| **Frontend**  | React, TypeScript, TailwindCSS, Vite, Builder.io     |
-| **Backend**   | FastAPI, Python, LangChain, HuggingFace Transformers |
-| **DevOps**    | GitHub, Netlify, Docker                              |
+### Backend
 
----
+- **Framework**: FastAPI (Python) for high-performance API delivery.
+- **NLP Engine**: LangChain integration with HuggingFace Transformers.
+- **Persistence**: SQLAlchemy ORM with SQLite/PostgreSQL support.
 
-## 📁 Folder Structure
+### Frontend
 
-```bash
+- **Core**: React library with Vite build tool.
+- **Language**: TypeScript for static typing and code maintainability.
+- **Styling**: TailwindCSS for utility-first design.
+- **Integration**: Builder.io for visual component management.
+
+## Installation & Setup
+
+### Prerequisites
+
+- Python 3.9+
+- Node.js 16+
+- Git
+
+### Backend Configuration
+
+1.  Navigate to the backend directory:
+
+    ```bash
+    cd backend
+    ```
+
+2.  Initialize the Python virtual environment:
+
+    ```bash
+    python -m venv venv
+    ```
+
+3.  Activate the environment:
+
+    - Windows: `.\venv\Scripts\activate`
+    - macOS/Linux: `source venv/bin/activate`
+
+4.  Install required dependencies:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+5.  Launch the application server:
+    ```bash
+    uvicorn main:app --reload
+    ```
+    The API will be accessible at `http://127.0.0.1:8000`.
+
+### Frontend Configuration
+
+1.  Navigate to the client directory:
+
+    ```bash
+    cd client
+    ```
+
+2.  Install package dependencies:
+
+    ```bash
+    npm install
+    ```
+
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+    The interface will be accessible at `http://localhost:5173`.
+
+## Project Structure
+
+```text
 LegalDocs-AI/
-├── backend/
-│   ├── main.py
-│   ├── summarizer.py
-│   ├── model_pipeline.py
-│   └── requirements.txt
+├── backend/                # Application server and API logic
+│   ├── core/               # Configuration and security settings
+│   ├── models/             # Database schema definitions
+│   ├── routers/            # API route handlers
+│   ├── services/           # Business logic and AI processing
+│   └── main.py             # Application entry point
 │
-├── client/
-│   ├── App.tsx
-│   ├── global.css
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   └── pages/
-│       ├── Dashboard.tsx
-│       ├── Features.tsx
-│       ├── HowItWorks.tsx
-│       ├── Index.tsx
-│       ├── Pricing.tsx
-│       └── SignIn.tsx
+├── client/                 # Frontend user interface
+│   ├── src/
+│   │   ├── components/     # React presentation components
+│   │   ├── pages/          # Route views
+│   │   ├── hooks/          # Custom state logic
+│   │   └── lib/            # Utility functions
+│   └── public/             # Static assets
 │
-├── public/
-│   └── homepage.png
-│
-├── shared/
-│   └── api.ts
-│
-│
-├── .env
-├── netlify.toml
-├── tailwind.config.ts
-├── README.md
+└── shared/                 # Shared resources
+```
 
+## License
 
-🧪 How to Run Locally
-1. 🚀 Backend (FastAPI)
-cd backend
-python -m venv venv
-venv\Scripts\activate    # On Windows
-pip install -r requirements.txt
-uvicorn main:app --reload
-
-2. 💻 Frontend (Vite + React)
-cd client
-npm install
-npm run dev
-Frontend: http://localhost:5173
-
-Backend: http://127.0.0.1:8000
-
-
-🌐 Deployment
-This project is ready to be deployed on:
-
-Netlify (Frontend)
-
-Render, Heroku, or Docker (Backend)
-
-See netlify/functions/api.ts for the Netlify Functions setup.
-
-
-🧾 License & Credits
-Built by @prakritea
-Powered by OpenAI, LangChain & HuggingFace models.
-
-✨ LegalDocs AI — Making legal documents readable in seconds.
-
----
-
-### Now do this:
-
-1. Save this as `README.md` in your root folder
-2. Push it:
-
-```bash
-git add README.md public/homepage.png
-git commit -m "Add clean README with banner and full project info"
-git push origin main
+This project is licensed under the MIT License.
