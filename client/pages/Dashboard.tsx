@@ -1,4 +1,6 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../src/supabaseClient";
 import { API_BASE_URL } from "../src/config";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -27,7 +29,7 @@ import {
   Plus
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { DocumentSummaryResponse, SourceReference } from "@shared/api";
+import { DocumentSummaryResponse } from "@shared/api";
 import { EyeOff, ExternalLink, BookOpen } from "lucide-react";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 
@@ -42,6 +44,7 @@ interface DocumentHistory {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -49,10 +52,17 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Document history data - empty initially, will be populated when documents are processed
+  // Document history data
   const [documentHistory, setDocumentHistory] = useState<DocumentHistory[]>([]);
 
   const [blurredSummaries, setBlurredSummaries] = useState<Record<string, boolean>>({});
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+  
   const toggleBlur = (docId: string) => {
     setBlurredSummaries(prev => ({
       ...prev,
@@ -315,11 +325,9 @@ export default function Dashboard() {
                 </div>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">User</span>
               </div>
-              <Link to="/">
-                <Button variant="ghost" size="sm">
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>

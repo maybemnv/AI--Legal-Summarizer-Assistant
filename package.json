@@ -12,6 +12,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
     "@types/axios": "^0.9.36",
     "@types/multer": "^2.0.0",
     "axios": "^1.12.2",
